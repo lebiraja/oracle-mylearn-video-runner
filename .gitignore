@@ -1,0 +1,4 @@
+node_modules/
+.oracle-playwright-profile/
+.env
+.DS_Store
