@@ -16,11 +16,13 @@ It leaves the Practice Exam, skill checks, quizzes, assignments, assessments, ce
 
 - Node.js 20 or newer
 - An Oracle MyLearn account with access to this learning path
-- Google Chrome or Chromium
+- Playwright's Chromium browser (installed by the command below)
+
+The runner supports Windows, macOS, and Linux. Use PowerShell or Command Prompt on Windows, or Terminal on macOS/Linux.
 
 ## Run
 
-```sh
+```text
 git clone https://github.com/lebiraja/oracle-mylearn-video-runner.git
 cd oracle-mylearn-video-runner
 npm install
@@ -34,6 +36,20 @@ A visible browser opens. Sign in to Oracle if prompted; the runner waits for the
 
 Each video plays for one second before seeking close to the end. You can change the wait and timeouts:
 
+PowerShell:
+
+```powershell
+$env:START_WAIT_MS = "1000"; $env:LOAD_TIMEOUT_MS = "120000"; $env:COMPLETION_TIMEOUT_MS = "20000"; npm start
+```
+
+Command Prompt:
+
+```bat
+set START_WAIT_MS=1000 && set LOAD_TIMEOUT_MS=120000 && set COMPLETION_TIMEOUT_MS=20000 && npm start
+```
+
+macOS/Linux:
+
 ```sh
 START_WAIT_MS=1000 LOAD_TIMEOUT_MS=120000 COMPLETION_TIMEOUT_MS=20000 npm start
 ```
@@ -44,7 +60,7 @@ START_WAIT_MS=1000 LOAD_TIMEOUT_MS=120000 COMPLETION_TIMEOUT_MS=20000 npm start
 
 ## Privacy and troubleshooting
 
-Oracle login cookies and browser state stay in `.oracle-playwright-profile/` on your computer. That folder is ignored by Git; never upload or share it. Each person should clone the repo and sign in with their own Oracle account.
+Oracle login cookies and browser state stay in `.oracle-playwright-profile/` on your computer. The runner resolves this folder as a native path on Windows, macOS, and Linux. That folder is ignored by Git; never upload or share it. Each person should clone the repo and sign in with their own Oracle account.
 
 - **It waits for the learning path:** finish signing in and wait for the path page to load.
 - **Chromium is missing:** run `npx playwright install chromium`.

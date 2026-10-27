@@ -1,7 +1,11 @@
 import { chromium } from 'playwright';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const LEARNING_PATH_URL = 'https://mylearn.oracle.com/ou/learning-path/become-an-oci-architect-associate/162234';
-const PROFILE_DIR = new URL('./.oracle-playwright-profile/', import.meta.url).pathname;
+// URL.pathname is percent-encoded and starts with `/C:/...` on Windows.
+// Convert the module URL to a native filesystem path so Chromium can create it.
+const PROFILE_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '.oracle-playwright-profile');
 const START_WAIT_MS = Number(process.env.START_WAIT_MS ?? 1000);
 const LOAD_TIMEOUT_MS = Number(process.env.LOAD_TIMEOUT_MS ?? 90000);
 const COMPLETION_TIMEOUT_MS = Number(process.env.COMPLETION_TIMEOUT_MS ?? 15000);
