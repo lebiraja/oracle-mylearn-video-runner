@@ -60,7 +60,7 @@ START_WAIT_MS=1000 LOAD_TIMEOUT_MS=120000 COMPLETION_TIMEOUT_MS=20000 npm start
 
 ## Privacy and troubleshooting
 
-Oracle login cookies and browser state stay in `.oracle-playwright-profile/` on your computer. The runner resolves this folder as a native path on Windows, macOS, and Linux. That folder is ignored by Git; never upload or share it. Each person should clone the repo and sign in with their own Oracle account.
+Oracle login cookies and browser state stay in `.oracle-playwright-profile/` on your computer. This is a dedicated Playwright profile, separate from your regular Chrome, Edge, or Safari profile, so those browser windows can remain open. The runner uses a small lock file to prevent two runner instances from opening the same saved profile at once; if a second run is attempted, close the first runner and retry. A stale lock from a crashed process is reclaimed automatically. Both paths are ignored by Git; never upload or share them. Each person should clone the repo and sign in with their own Oracle account.
 
 - **It waits for the learning path:** finish signing in and wait for the path page to load.
 - **Chromium is missing:** run `npx playwright install chromium`.

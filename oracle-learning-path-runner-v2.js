@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import { open, readFile, unlink } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -6,19 +7,23 @@ const LEARNING_PATH_URL = 'https://mylearn.oracle.com/ou/learning-path/become-an
 // URL.pathname is percent-encoded and starts with `/C:/...` on Windows.
 // Convert the module URL to a native filesystem path so Chromium can create it.
 const PROFILE_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '.oracle-playwright-profile');
+const RUNNER_LOCK = resolve(dirname(PROFILE_DIR), '.oracle-playwright-runner.lock');
 const START_WAIT_MS = Number(process.env.START_WAIT_MS ?? 1000);
 const LOAD_TIMEOUT_MS = Number(process.env.LOAD_TIMEOUT_MS ?? 90000);
 const COMPLETION_TIMEOUT_MS = Number(process.env.COMPLETION_TIMEOUT_MS ?? 15000);
 const SKIP_LESSON = /skill\s*check|practice\s*exam|certification\s*exam|assignment|quiz|assessment|\btest\b/i;
 const SKIP_PATH_MODULE = /practice\s*exam|online certification exam/i;
 
-const context = await chromium.launchPersistentContext(PROFILE_DIR, {
-  headless: false,
-  viewport: { width: 1440, height: 950 },
-  args: ['--autoplay-policy=no-user-gesture-required'],
-});
-
+let releaseRunnerLock;
+let context;
 try {
+  releaseRunnerLock = await acquireRunnerLock();
+  context = await chromium.launchPersistentContext(PROFILE_DIR, {
+    headless: false,
+    viewport: { width: 1440, height: 950 },
+    args: ['--autoplay-policy=no-user-gesture-required'],
+  });
+
   const page = context.pages()[0] ?? await context.newPage();
   console.log(`Opening learning path: ${LEARNING_PATH_URL}`);
   await page.goto(LEARNING_PATH_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -84,10 +89,57 @@ try {
   console.log(`\nLearning path scan finished. Green ticks confirmed: ${totalCompleted}; errors: ${totalFailed}.`);
   console.log('The runner did not open lab, practice exam, skill-check, or certification-exam items.');
 } catch (error) {
-  console.error(`Runner stopped: ${error.message}`);
+  const message = error.message || String(error);
+  if (/ProcessSingleton|profile directory|user data directory|already in use/i.test(message)) {
+    console.error('Chromium could not open the runner profile. Close any other Oracle video runner window/process, then try again. Your regular Chrome/Edge windows use a separate profile and can stay open.');
+  } else {
+    console.error(`Runner stopped: ${message}`);
+  }
   process.exitCode = 1;
 } finally {
-  await context.close();
+  await context?.close().catch(() => {});
+  await releaseRunnerLock?.();
+}
+
+async function acquireRunnerLock() {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const handle = await open(RUNNER_LOCK, 'wx');
+      await handle.writeFile(String(process.pid));
+      return async () => {
+        await handle.close().catch(() => {});
+        await unlink(RUNNER_LOCK).catch(() => {});
+      };
+    } catch (error) {
+      if (error.code !== 'EEXIST') throw error;
+      let ownerText = (await readFile(RUNNER_LOCK, 'utf8').catch(() => '')).trim();
+      if (!ownerText) {
+        await new Promise((resolveWait) => setTimeout(resolveWait, 200));
+        ownerText = (await readFile(RUNNER_LOCK, 'utf8').catch(() => '')).trim();
+      }
+      const ownerPid = Number(ownerText);
+      if (ownerPid && isProcessRunning(ownerPid)) {
+        throw new Error(`Another runner instance (PID ${ownerPid}) is already using the saved browser profile.`);
+      }
+      if (!ownerText || !Number.isInteger(ownerPid)) {
+        throw new Error('The runner lock file exists but its owner could not be read. Wait a moment and retry.');
+      }
+      // A hard exit can leave the small runner lock behind. Reclaim it when
+      // its recorded process is no longer running; Chromium still protects
+      // the actual profile directory itself.
+      await unlink(RUNNER_LOCK).catch(() => {});
+    }
+  }
+  throw new Error('Could not acquire the runner lock. Check for another runner process and retry.');
+}
+
+function isProcessRunning(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === 'EPERM';
+  }
 }
 
 async function readPathTargets(page) {

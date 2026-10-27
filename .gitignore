@@ -1,4 +1,5 @@
 node_modules/
 .oracle-playwright-profile/
+.oracle-playwright-runner.lock
 .env
 .DS_Store
