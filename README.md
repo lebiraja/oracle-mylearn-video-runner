@@ -34,6 +34,18 @@ START_ITEM_ID=205167 npm start
 
 The runner includes that lesson if it is an unfinished video. It skips completed lessons before and after the starting point.
 
+## Version 2: scan a whole learning path
+
+`start:v2` opens the **Become an OCI Architect Associate** learning path, processes unfinished timed video lessons in its course and eligible modules, then closes the browser when it finishes:
+
+```sh
+npm run start:v2
+```
+
+It skips the Oracle University Lab, Practice Exam, skill checks, quizzes, assignments, assessments, and certification exams. It only handles playlist rows with lesson durations and a Brightcove video player; reading/content-link rows are left alone. In the supplied learning path, this includes the main course and the video lessons in Prepare for Certification. Exam Topics currently appears as a content link, so it is skipped. The script does not start the Online Certification Exam.
+
+Version 2 has not been run yet. Test it after the current `npm start` run finishes. If the current runner leaves its browser open at the end, press Ctrl+C in its terminal before starting version 2 so the two runs do not share the profile at once.
+
 ## Timing options
 
 The script starts each video, waits one second, seeks close to its end, and waits for Oracle to show the green tick. You can adjust these values:

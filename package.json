@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node oracle-video-runner.js"
+    "start": "node oracle-video-runner.js",
+    "start:v2": "node oracle-learning-path-runner-v2.js"
   },
   "dependencies": {
     "playwright": "^1.58.0"
