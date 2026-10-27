@@ -6,7 +6,7 @@ const START_WAIT_MS = Number(process.env.START_WAIT_MS ?? 1000);
 const LOAD_TIMEOUT_MS = Number(process.env.LOAD_TIMEOUT_MS ?? 90000);
 const COMPLETION_TIMEOUT_MS = Number(process.env.COMPLETION_TIMEOUT_MS ?? 15000);
 const SKIP_LESSON = /skill\s*check|practice\s*exam|certification\s*exam|assignment|quiz|assessment|\btest\b/i;
-const SKIP_PATH_MODULE = /lab|practice\s*exam|online certification exam/i;
+const SKIP_PATH_MODULE = /practice\s*exam|online certification exam/i;
 
 const context = await chromium.launchPersistentContext(PROFILE_DIR, {
   headless: false,
@@ -54,9 +54,8 @@ try {
     console.log(`Timed lessons: ${lessons.length}; already complete: ${lessons.length - pending.length}; to process: ${pending.length}.`);
     if (!pending.length) continue;
 
-    // A course with timed video rows has a Brightcove player. Content-link
-    // modules (for example Exam Topics) have no timed video rows and are skipped.
-    await page.waitForSelector('video.vjs-tech', { timeout: LOAD_TIMEOUT_MS });
+    // Content-link modules (for example Exam Topics) have no timed video rows
+    // and are skipped. The video player can appear only after selecting a row.
     await disableAutoplay(page);
     for (let i = 0; i < pending.length; i++) {
       const item = pending[i];
@@ -143,7 +142,7 @@ async function disableAutoplay(page) {
 
 async function finishVideo(page, item) {
   const video = page.locator('video.vjs-tech');
-  const beforeId = await video.getAttribute('data-video-id').catch(() => null);
+  const beforeId = await page.evaluate(() => document.querySelector('video.vjs-tech')?.getAttribute('data-video-id') || null);
   const beforeTitle = await page.evaluate(() => (document.body?.innerText || '').match(/Now Playing:\s*(.*)/i)?.[1]?.trim() || '');
   const currentRow = await page.locator(`a.playlist-component-href[href="${item.href}"]`).first().evaluate((a) =>
     Boolean(a.closest('li.playlistComponent')?.querySelector('.playListInprogress'))
