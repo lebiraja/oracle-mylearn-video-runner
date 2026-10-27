@@ -8,7 +8,7 @@ This Playwright helper opens the **Become an OCI Architect Associate** learning 
 - Timed video lessons in the **Oracle University Lab** and **Prepare for Certification**, including Sample Exam Questions
 - Existing green ticks are checked and completed lessons are skipped
 
-It leaves the Practice Exam, skill checks, quizzes, assignments, assessments, certification exams, and other non-video content for you. It only processes playlist rows with a lesson duration and a Brightcove video player; the Lab's 0-minute activity guide is therefore left alone. In this learning path, Exam Topics is presented as a content link, so it is not treated as a video.
+It leaves the Practice Exam, skill checks, quizzes, assignments, assessments, certification exams, and other non-video content for you. It only processes playlist rows with a positive lesson duration and a Brightcove video player; the Lab's 0-minute activity guide is therefore left alone. In this learning path, Exam Topics is presented as a content link, so it is not treated as a video.
 
 > Seeking to the end records course progress without watching the lesson. Use this only where permitted by your course and account rules. The runner does not take or complete assessments.
 

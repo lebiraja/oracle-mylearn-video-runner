@@ -51,7 +51,7 @@ try {
     // excluded by name above.
     const lessonByHref = new Map();
     for (const item of await readPlaylist(page)) {
-      if (item.duration && !SKIP_LESSON.test(item.title) && !lessonByHref.has(item.href)) {
+      if (item.duration && item.duration !== '0m' && !SKIP_LESSON.test(item.title) && !lessonByHref.has(item.href)) {
         lessonByHref.set(item.href, item);
       }
     }
