@@ -41,6 +41,10 @@ try {
     console.log(`\n=== ${target.label} ===`);
     await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForSelector('li.playlistComponent', { timeout: LOAD_TIMEOUT_MS });
+    // MyLearn renders playlist titles before it hydrates per-lesson progress.
+    // Give the progress API time to populate green ticks before deciding what
+    // is still pending; otherwise a resumed run would replay completed videos.
+    await page.waitForTimeout(5000);
 
     // Some course/module pages contain reading links instead of videos. Only
     // rows with a lesson duration are candidates; interactive assessments are
