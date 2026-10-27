@@ -93,7 +93,7 @@ async function finishVideo(page, item) {
     return text.match(/Now Playing:\s*(.*)/i)?.[1]?.trim() || '';
   });
 
-  await page.locator(`a[href="${item.href}"]`).click({ timeout: 15000 });
+  await page.locator(`a.playlist-component-href[href="${item.href}"]`).first().click({ timeout: 15000 });
   await page.waitForFunction(({ title, beforeId, beforeTitle }) => {
     const player = document.querySelector('video.vjs-tech');
     if (!player || player.duration <= 0 || player.readyState < 2) return false;
