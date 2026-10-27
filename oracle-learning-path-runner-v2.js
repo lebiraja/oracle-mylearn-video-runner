@@ -49,7 +49,13 @@ try {
     // Some course/module pages contain reading links instead of videos. Only
     // rows with a lesson duration are candidates; interactive assessments are
     // excluded by name above.
-    const lessons = (await readPlaylist(page)).filter((item) => item.duration && !SKIP_LESSON.test(item.title));
+    const lessonByHref = new Map();
+    for (const item of await readPlaylist(page)) {
+      if (item.duration && !SKIP_LESSON.test(item.title) && !lessonByHref.has(item.href)) {
+        lessonByHref.set(item.href, item);
+      }
+    }
+    const lessons = [...lessonByHref.values()];
     const pending = lessons.filter((item) => !item.completed);
     console.log(`Timed lessons: ${lessons.length}; already complete: ${lessons.length - pending.length}; to process: ${pending.length}.`);
     if (!pending.length) continue;
@@ -111,6 +117,9 @@ async function readPathTargets(page) {
 }
 
 async function openPathModule(page, target) {
+  // Return to the learning-path overview before opening each module card.
+  await page.goto(LEARNING_PATH_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.waitForFunction((id) => Boolean(document.querySelector(`[id$="Label-${id}"]`)), target.id, { timeout: LOAD_TIMEOUT_MS });
   const previousUrl = page.url();
   const label = page.locator(`[id$="Label-${target.id}"]`).first();
   const card = label.locator('xpath=ancestor::*[@tabindex="0"][1]');
