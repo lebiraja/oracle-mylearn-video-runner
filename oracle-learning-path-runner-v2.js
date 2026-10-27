@@ -75,8 +75,11 @@ async function readPathTargets(page) {
     const skip = new RegExp(skipModules, 'i');
     const targets = [];
     const seen = new Set();
+    // The Course card itself also contains a "Lab" badge, so identify it by
+    // the course card/link type rather than excluding links whose full card
+    // text mentions a lab.
     const courseLinks = [...document.querySelectorAll('a[href*="/ou/course/"]')]
-      .filter((a) => /Course/i.test(a.innerText || '') && !/Lab/i.test(a.innerText || ''));
+      .filter((a) => /Course/i.test(a.innerText || ''));
     for (const link of courseLinks) {
       const href = new URL(link.getAttribute('href'), location.href).href;
       if (seen.has(href)) continue;

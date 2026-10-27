@@ -1,18 +1,24 @@
-# Oracle MyLearn video runner
+# Oracle MyLearn learning-path video runner
 
-A small Playwright script for progressing through the video lessons in the Oracle University course **Oracle Cloud Infrastructure Architect Associate**. It opens a visible browser, waits for the course playlist and player, then handles unfinished videos in playlist order.
+This Playwright helper opens the **Become an OCI Architect Associate** learning path and progresses through unfinished timed video lessons in its course and eligible modules. It uses the visible Oracle MyLearn player, waits briefly for playback, seeks near the end, then waits for the lesson's green completion tick before moving on.
 
-The default starting point is **5. Networking - Virtual Cloud Network**. The runner skips lessons that already have Oracle's green completion tick. It ignores skill checks, quizzes, exams, assessments, and assignments, and disables the site's Auto Play control so it does not advance into those items on its own.
+## What it handles
 
-> Seeking to the end records course progress without watching the lesson. Use this only where permitted by your course and account rules. This tool does not take or complete assessments.
+- The Oracle Cloud Infrastructure Architect Associate course and its timed video lessons
+- Timed video lessons in **Prepare for Certification**, including Sample Exam Questions
+- Existing green ticks are checked and completed lessons are skipped
+
+It leaves the Oracle University Lab, Practice Exam, skill checks, quizzes, assignments, assessments, certification exams, and other non-video content for you. It only processes playlist rows with a lesson duration and a Brightcove video player. In this learning path, Exam Topics is presented as a content link, so it is not treated as a video.
+
+> Seeking to the end records course progress without watching the lesson. Use this only where permitted by your course and account rules. The runner does not take or complete assessments.
 
 ## Requirements
 
 - Node.js 20 or newer
-- An Oracle MyLearn account with access to the course
+- An Oracle MyLearn account with access to this learning path
 - Google Chrome or Chromium
 
-## Quick start
+## Run
 
 ```sh
 git clone https://github.com/lebiraja/oracle-mylearn-video-runner.git
@@ -22,49 +28,25 @@ npx playwright install chromium
 npm start
 ```
 
-The first run opens a browser. Sign in to Oracle there if asked; the runner waits for the course playlist and video player, then starts automatically. Keep the terminal open to see progress. Stop it with **Ctrl+C** after it finishes. The browser profile is stored locally in `.oracle-playwright-profile/` so you usually do not need to sign in again.
+A visible browser opens. Sign in to Oracle if prompted; the runner waits for the learning path and starts automatically. Keep the terminal open to see progress. It closes its browser when done. If interrupted, run `npm start` again; Oracle's saved green ticks let it skip completed videos.
 
-## Change the starting lesson
+## Options
 
-By default, processing starts at the module 5 **Module Overview**. To start at another lesson, use the numeric content ID at the end of that lesson's playlist link:
-
-```sh
-START_ITEM_ID=205167 npm start
-```
-
-The runner includes that lesson if it is an unfinished video. It skips completed lessons before and after the starting point.
-
-## Version 2: scan a whole learning path
-
-`start:v2` opens the **Become an OCI Architect Associate** learning path, processes unfinished timed video lessons in its course and eligible modules, then closes the browser when it finishes:
-
-```sh
-npm run start:v2
-```
-
-It skips the Oracle University Lab, Practice Exam, skill checks, quizzes, assignments, assessments, and certification exams. It only handles playlist rows with lesson durations and a Brightcove video player; reading/content-link rows are left alone. In the supplied learning path, this includes the main course and the video lessons in Prepare for Certification. Exam Topics currently appears as a content link, so it is skipped. The script does not start the Online Certification Exam.
-
-Version 2 has not been run yet. Test it after the current `npm start` run finishes. If the current runner leaves its browser open at the end, press Ctrl+C in its terminal before starting version 2 so the two runs do not share the profile at once.
-
-## Timing options
-
-The script starts each video, waits one second, seeks close to its end, and waits for Oracle to show the green tick. You can adjust these values:
+Each video plays for one second before seeking close to the end. You can change the wait and timeouts:
 
 ```sh
 START_WAIT_MS=1000 LOAD_TIMEOUT_MS=120000 COMPLETION_TIMEOUT_MS=20000 npm start
 ```
 
 - `START_WAIT_MS`: playback time before seeking (default `1000`)
-- `LOAD_TIMEOUT_MS`: wait for the signed-in playlist and player (default `90000`)
+- `LOAD_TIMEOUT_MS`: wait for the learning path, playlist, and player (default `90000`)
 - `COMPLETION_TIMEOUT_MS`: wait for Oracle's completion tick (default `15000`)
 
-## Privacy
+## Privacy and troubleshooting
 
-Login cookies and browser state stay in `.oracle-playwright-profile/` on your computer. That folder is ignored by Git; do not upload or share it. The script does not send course information to a classifier or other external service.
+Oracle login cookies and browser state stay in `.oracle-playwright-profile/` on your computer. That folder is ignored by Git; never upload or share it. Each person should clone the repo and sign in with their own Oracle account.
 
-## Troubleshooting
-
-- **It waits for the playlist:** finish signing in and wait for the course player to appear in the browser.
+- **It waits for the learning path:** finish signing in and wait for the path page to load.
 - **Chromium is missing:** run `npx playwright install chromium`.
-- **Some lessons fail:** the terminal reports which rows did not get a confirmed green tick. MyLearn can change its page markup or player behavior; review those rows and rerun the script to retry unfinished videos.
-- **Need to restart:** stop with Ctrl+C and run `npm start` again. Completed rows are skipped on the next run.
+- **Some lessons fail:** the terminal reports rows without a confirmed green tick. Rerun after the browser closes to retry unfinished videos.
+- **MyLearn changed:** this helper relies on MyLearn playlist and Brightcove player markup, which may change over time.
