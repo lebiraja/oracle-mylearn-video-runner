@@ -19,6 +19,13 @@ try {
   console.log(`Opening learning path: ${LEARNING_PATH_URL}`);
   await page.goto(LEARNING_PATH_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForFunction(() => /Become an OCI Architect Associate/.test(document.body?.innerText || ''), { timeout: LOAD_TIMEOUT_MS });
+  await page.waitForFunction(() => {
+    const text = document.body?.innerText || '';
+    return /Oracle Cloud Infrastructure Architect Associate/.test(text)
+      && /Prepare for Certification/.test(text)
+      && Boolean(document.querySelector('[id*="course-"][id*="Label-"]'))
+      && Boolean(document.querySelector('[id*="module-"][id*="Label-"]'));
+  }, { timeout: LOAD_TIMEOUT_MS });
 
   const targets = await readPathTargets(page);
   console.log(`Found ${targets.length} eligible course/module pages:`);
